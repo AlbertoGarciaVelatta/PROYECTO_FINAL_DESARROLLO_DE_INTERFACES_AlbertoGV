@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "777223991666",
+    "project_id": "allergycontrol",
+    "storage_bucket": "allergycontrol.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:777223991666:android:d2b2090784a29e586e2deb",
+        "android_client_info": {
+          "package_name": "com.example.proyecto"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtih_dyjB3EbxQ3ed4YipAEy5sbUZra8Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

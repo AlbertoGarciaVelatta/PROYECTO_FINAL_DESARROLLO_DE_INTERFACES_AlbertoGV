@@ -6,10 +6,142 @@ Allergy Control es una aplicación móvil desarrollada en **Android Studio** con
 
 ##  Características
 * **Escaneo Inteligente:** Identifica productos y verifica sus ingredientes.
+
+usando la api de OpenFoodFacts, si no tenemos el producto en la base de datos lo buscamos alli y se importa en la base de datos
+
+  
+     CONSULTA API EXTERNA (OpenFoodFacts)
+      RA8.f (Uso de recursos): Ejecuta la petición en un hilo secundario
+     para no bloquear la interfaz de usuario.
+     
+    private fun consultarApiExterna(codigo: String, onResult: (Product?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("https://world.openfoodfacts.org/api/v2/product/$codigo.json")
+                val text = url.readText()
+                val json = JSONObject(text)
+                if (json.getInt("status") == 1) {
+                    val p = json.getJSONObject("product")
+                    val nuevo = Product(
+                        id = codigo,
+                        name = p.optString("product_name", "Desconocido"),
+                        store = p.optString("brands", "Marca desconocida"),
+                        allergens = mapearAlergenosApi(
+                            p.optString("allergens_tags", ""),
+                            p.optString("product_name", ""),
+                            p.optString("ingredients_text", "")
+                        ),
+                        imageUrl = p.optString("image_url", ""),
+                        isVerified = false
+                    )
+                    withContext(Dispatchers.Main) { onResult(nuevo) }
+                } else withContext(Dispatchers.Main) { onResult(null) }
+            } catch (e: Exception) { withContext(Dispatchers.Main) { onResult(null) } }
+        }
+    }
+
+    y en este apartado de codigo se analiza si contiene algun componente alergeno
+
+    /**
+     * ALGORITMO DE FILTRADO (El "Cerebro" de la app)
+     * Cruza etiquetas oficiales de la API con búsqueda de palabras clave en el texto.
+     */
+    private fun mapearAlergenosApi(tags: String, nombre: String, ingredientes: String): List<String> {
+        val detectados = mutableListOf<String>()
+        val textoCompleto = "$nombre $ingredientes".lowercase()
+        val tagsList = tags.lowercase()
+
+        // Diccionario de categorías y palabras clave para la detección
+        val categorias = mapOf(
+            "MOLUSCOS" to listOf("en:molluscs", "mejillón", "almeja", "pulpo", "calamar", "sepia", "caracol"),
+            "CRUSTÁCEOS" to listOf("en:crustaceans", "gamba", "langostino", "cangrejo", "buey de mar", "cigala"),
+            "GLUTEN" to listOf("en:gluten", "en:wheat", "en:barley", "en:rye", "en:oats", "trigo", "cebada", "centeno", "avena", "espelta", "kamut"),
+            "LACTOSA" to listOf("en:milk", "en:dairy", "leche", "lactosa", "suero", "mantequilla", "queso", "yogur", "caseína", "nata"),
+            "HUEVO" to listOf("en:eggs", "huevo", "albúmina", "yema", "lysozyme", "ovomucina"),
+            "FRUTOS SECOS" to listOf("en:nuts", "en:tree-nuts", "nuez", "almendra", "avellana", "anacardo", "pistacho", "piñón", "castaña", "nuez de brasil", "macadamia"),
+            "CACAHUETES" to listOf("en:peanuts", "cacahuete", "maní", "arachis"),
+            "SOJA" to listOf("en:soya", "en:soybeans", "soja", "lecitina de soja", "glycine max"),
+            "PESCADO" to listOf("en:fish", "pescado", "bacalao", "atún", "merluza", "salmón"),
+            "MARISCO" to listOf("en:crustaceans", "en:molluscs", "marisco", "gamba", "langostino", "mejillón", "almeja", "calamar", "cangrejo"),
+            "MOSTAZA" to listOf("en:mustard", "mostaza", "sinapis"),
+            "SÉSAMO" to listOf("en:sesame-seeds", "sésamo", "ajonjolí"),
+            "SULFITOS" to listOf("en:sulphites", "sulfitos", "e220", "dióxido de azufre")
+        )
+
+        //Detección por etiquetas oficiales (Tags)
+        categorias.forEach { (categoria, palabrasClave) ->
+            if (palabrasClave.any { it.startsWith("en:") && tagsList.contains(it) }) {
+                detectados.add(categoria)
+            }
+        }
+
+        //Detección por texto (Búsqueda inteligente para evitar falsos positivos como "Sin Lactosa")
+        categorias.forEach { (categoria, palabrasClave) ->
+            val palabrasSoloTexto = palabrasClave.filter { !it.startsWith("en:") }
+            if (palabrasSoloTexto.any { textoCompleto.contains(it) }) {
+                // RA8.c (Pruebas de regresión): Evita marcar como peligroso si el texto dice "SIN [alérgeno]"
+                if (!textoCompleto.contains("sin ${categoria.lowercase()}")) {
+                    detectados.add(categoria)
+                }
+            }
+        }
+        //Detección de trazas o contaminación cruzada
+        if (textoCompleto.contains("puede contener") || textoCompleto.contains("trazas de")) {
+            categorias.keys.forEach { cat ->
+                if (textoCompleto.contains(cat.lowercase())) detectados.add(cat)
+            }
+        }
+
+        return detectados.distinct()
+    }
+
 * **Perfiles de Alergia:** Configura tus alérgenos personales (gluten, lactosa, frutos secos, etc.).
+
+en la creacion de usuario 
+
 * **Indicadores Visuales:** Interfaz clara con tarjetas de colores:
     *  **Verde (APTO):** El producto es seguro para ti.
     *  **Rojo (NO APTO):** Se han detectado alérgenos que coinciden con tu perfil.
+ 
+    *  aqui esta el trozo de codigo del main que se encarga de mostrar el resultado
+
+ @Composable
+fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () -> Unit) {
+    // Lógica binaria para determinar el color de la alerta
+    val esApto = mensaje.contains("APTO") && !mensaje.contains("NO APTO")
+    val colorP = if (esApto) SafeGreen else AlertRed
+
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        shape = RoundedCornerShape(28.dp),
+        color = if (esApto) Color(0xFFE8F5E9) else Color(0xFFFFEBEE), //los colores dependiendo si es apto o no
+        border = BorderStroke(4.dp, colorP),
+        shadowElevation = 20.dp
+    ) {
+        Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            // Imagen del producto
+            if (!producto?.imageUrl.isNullOrEmpty()) {
+                Surface(modifier = Modifier.size(120.dp), shape = RoundedCornerShape(12.dp), color = Color.White) {
+                    AsyncImage(model = producto?.imageUrl, contentDescription = null, modifier = Modifier.fillMaxSize().padding(8.dp))
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(producto?.name?.uppercase() ?: "PRODUCTO", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            Text(mensaje, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, color = if (esApto) Color(0xFF1B5E20) else Color(0xFFB71C1C))
+
+            // Información detallada en caso de peligro
+            if (!esApto && !producto?.allergens.isNullOrEmpty()) {
+                Text("Alérgenos detectados: ${producto?.allergens?.joinToString(", ")}", color = AlertRed, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp), textAlign = TextAlign.Center)
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = colorP), modifier = Modifier.fillMaxWidth()) {
+                Text("CERRAR", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+   
 * **Diseño Moderno:** Interfaz basada en Material 3 con una paleta de colores profesional (Verde ment y Gris Ceniza).
 
 ## Tecnologías Utilizadas

@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 
-
+//este apartado esta vacio porue tambien es un remanente de crear informes
 @Composable
 fun ProductCard(product: Product, userAllergies: List<String>) {
     val esPeligroso = product.allergens.any { allergen ->

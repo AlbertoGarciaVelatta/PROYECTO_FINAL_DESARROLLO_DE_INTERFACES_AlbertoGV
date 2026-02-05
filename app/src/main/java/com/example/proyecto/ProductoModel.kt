@@ -173,7 +173,7 @@ class ProductViewModel : ViewModel() {
 
     /**
      * CONSULTA API EXTERNA (OpenFoodFacts)
-     * RA8.f (Uso de recursos): Ejecuta la petición en un hilo secundario (Dispatchers.IO)
+     * RA8.f (Uso de recursos): Ejecuta la petición en un hilo secundario
      * para no bloquear la interfaz de usuario.
      */
     private fun consultarApiExterna(codigo: String, onResult: (Product?) -> Unit) {

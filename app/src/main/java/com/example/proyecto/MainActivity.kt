@@ -312,7 +312,7 @@ fun MainScreenContent(isLoading: Boolean, grupoActivo: GroupProfile?, onDesactiv
 }
 
 /**
- * COMPONENTE: Resultado Visual (Alerta de Alérgenos)
+ * Resultado Visual (Alerta de Alérgenos)
  * Muestra si el producto es APTO o NO APTO con código de colores.
  */
 @Composable

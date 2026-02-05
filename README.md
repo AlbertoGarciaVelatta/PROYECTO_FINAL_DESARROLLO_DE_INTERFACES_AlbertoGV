@@ -106,9 +106,12 @@ en la creacion de usuario
     *  aqui esta el trozo de codigo del main que se encarga de mostrar el resultado
       
 
+Resultado Visual (Alerta de Alérgenos)
+Muestra si el producto es APTO o NO APTO con código de colores.
 
-
- @Composable
+aqui hay un pequeño error que no se porque ha sucedido
+ 
+@Composable
 fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () -> Unit) {
     // Lógica binaria para determinar el color de la alerta
     val esApto = mensaje.contains("APTO") && !mensaje.contains("NO APTO")
@@ -144,6 +147,7 @@ fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () ->
     }
 }
 
+ 
    
 * **Diseño Moderno:** Interfaz basada en Material 3 con una paleta de colores profesional (Verde ment y Gris Ceniza).
 

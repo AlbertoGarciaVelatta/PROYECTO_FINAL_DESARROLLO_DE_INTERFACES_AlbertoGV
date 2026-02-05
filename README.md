@@ -172,7 +172,7 @@ Memoria RAM: Uso de la librería Coil para la gestión de imágenes. Coil gestio
 Batería: El escáner de cámara (CameraX) se vincula al ciclo de vida (Lifecycle) de la pantalla. Esto significa que la cámara se apaga instantáneamente cuando el usuario sale de la pantalla de escaneo o minimiza la app, ahorrando energía significativamente.
 
 ## Informes (RA5)
-para ser totalmente honesto, intente hacerlo cuando ya tenia la app practicamente hecha y se me complico muchisimo, no paraban de salirme errores por todas partes y me acabe estresando por no encontrar una solución, asi que decidi dejarlo y volvi al ultimo commit
+Para ser totalmente sincero, intenté hacerlo cuando ya tenía la app prácticamente hecha y se me complicó muchísimo. No paraban de salirme errores por todas partes y me acabé estresando por no encontrar una solución, así que decidí dejarlo y volví al último commit, ya que no me parecia algo necesario en la aplicación.
 
 ##  Paleta de Colores Corporativa
 intente que la paleta de colores fuera proxima al verde porque es u color que representa la salud,

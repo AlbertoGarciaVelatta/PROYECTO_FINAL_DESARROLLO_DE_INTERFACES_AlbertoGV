@@ -35,6 +35,7 @@ import com.example.proyecto.ui.theme.ProyectoTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
+//la paleta de colores se la app
 val MintBackground = Color(0xFFF1F8F5)
 val SafeGreen = Color(0xFF4CAF50)
 val Charcoal = Color(0xFF263238)
@@ -44,6 +45,7 @@ val AlertRed = Color(0xFFD32F2F)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Inicialización de gestores de Firebase
         val authManager = AuthManager()
         val firebaseAuth = FirebaseAuth.getInstance()
 
@@ -54,17 +56,21 @@ class MainActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
+                // Inyección de ViewModels
                 val productViewModel: ProductViewModel = viewModel()
                 val groupViewModel: GroupViewModel = viewModel()
 
+                // Estados reactivos para la navegación
                 var userUid by remember { mutableStateOf(firebaseAuth.currentUser?.uid) }
                 var isLoginMode by remember { mutableStateOf(true) }
                 var mostrarDialogoGrupo by remember { mutableStateOf(false) }
                 var mostrarDialogoInvitacion by remember { mutableStateOf<String?>(null) }
                 var miembrosAMostrar by remember { mutableStateOf<List<String>?>(null) }
 
+                // Observador del mensaje de resultado del escáner
                 val resultMsg by productViewModel.scanResultMessage
 
+                // aqui fuerza que si no hay usuario, forzamos pantalla de Registro/Login
                 if (userUid == null) {
                     RegistroMinimoScreen(
                         isLoginMode = isLoginMode,
@@ -84,6 +90,7 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 } else {
+                    // Una vez logueado, disparamos la carga de datos de Firebase
                     LaunchedEffect(userUid) {
                         userUid?.let {
                             productViewModel.cargarPerfilUsuario(it)
@@ -92,6 +99,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    // Gestión de permisos de cámara y callback del escáner
                     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
                         if (it) {
                             setContent {
@@ -103,6 +111,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    // --- SECCIÓN DE DIÁLOGOS EMERGENTES ---
                     if (mostrarDialogoGrupo) {
                         DialogoCrearGrupo(onDismiss = { mostrarDialogoGrupo = false }, onConfirm = { nombre -> groupViewModel.crearGrupo(nombre, userUid!!) })
                     }
@@ -115,6 +124,7 @@ class MainActivity : ComponentActivity() {
                         DialogoVerMiembros(nombres = lista, onDismiss = { miembrosAMostrar = null })
                     }
 
+                    //Menú lateral + Contenido
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
@@ -156,7 +166,7 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     permissionLauncher.launch(Manifest.permission.CAMERA)
                                 }
-
+// ANIMACIÓN DE RESULTADO: Aparece cuando hay una respuesta del escáner
                                 AnimatedVisibility(
                                     visible = resultMsg != null,
                                     enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
@@ -179,6 +189,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Menú lateral
+ * Gestiona el perfil del usuario y la lista de grupos.
+ */
 @Composable
 fun DrawerContent(
     userUid: String?,
@@ -194,6 +208,7 @@ fun DrawerContent(
     onCloseDrawer: () -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
+        // Cabecera con el ID del usuario
         item {
             Box(modifier = Modifier.fillMaxWidth().background(Charcoal).padding(24.dp)) {
                 Column {
@@ -210,7 +225,7 @@ fun DrawerContent(
                 }
             }
         }
-
+        // Selector de "Modo Personal", para salir del modo grupal
         item {
             NavigationDrawerItem(
                 label = { Text("MODO PERSONAL") },
@@ -222,6 +237,7 @@ fun DrawerContent(
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         }
 
+        // Cabecera de Grupos
         item {
             Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("MIS GRUPOS", fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), color = Charcoal)
@@ -229,6 +245,7 @@ fun DrawerContent(
             }
         }
 
+// Lista de los grupos
         items(misGrupos) { grupo ->
             val esAdmin = grupo.adminId == userUid
             NavigationDrawerItem(
@@ -262,12 +279,17 @@ fun DrawerContent(
     }
 }
 
+/**
+ * Pantalla central
+ * Muestra el botón de escaneo y el estado del modo actual.
+ */
 @Composable
 fun MainScreenContent(isLoading: Boolean, grupoActivo: GroupProfile?, onDesactivarGrupo: () -> Unit, onScanClick: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         if (isLoading) {
             CircularProgressIndicator(modifier = Modifier.size(60.dp), color = SafeGreen)
         } else {
+            // Indicador de grupo activo (Modo Colaborativo)
             if (grupoActivo != null) {
                 InputChip(
                     selected = true,
@@ -277,6 +299,7 @@ fun MainScreenContent(isLoading: Boolean, grupoActivo: GroupProfile?, onDesactiv
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
+            // Botón central de escaneo ( y la opcion de cambiar de color según el modo)
             Button(
                 onClick = onScanClick, modifier = Modifier.size(220.dp),
                 shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = if (grupoActivo != null) Charcoal else SafeGreen),
@@ -288,19 +311,25 @@ fun MainScreenContent(isLoading: Boolean, grupoActivo: GroupProfile?, onDesactiv
     }
 }
 
+/**
+ * COMPONENTE: Resultado Visual (Alerta de Alérgenos)
+ * Muestra si el producto es APTO o NO APTO con código de colores.
+ */
 @Composable
 fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () -> Unit) {
+    // Lógica binaria para determinar el color de la alerta
     val esApto = mensaje.contains("APTO") && !mensaje.contains("NO APTO")
     val colorP = if (esApto) SafeGreen else AlertRed
 
     Surface(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         shape = RoundedCornerShape(28.dp),
-        color = if (esApto) Color(0xFFE8F5E9) else Color(0xFFFFEBEE),
+        color = if (esApto) Color(0xFFE8F5E9) else Color(0xFFFFEBEE), //los colores dependiendo si es apto o no
         border = BorderStroke(4.dp, colorP),
         shadowElevation = 20.dp
     ) {
         Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            // Imagen del producto
             if (!producto?.imageUrl.isNullOrEmpty()) {
                 Surface(modifier = Modifier.size(120.dp), shape = RoundedCornerShape(12.dp), color = Color.White) {
                     AsyncImage(model = producto?.imageUrl, contentDescription = null, modifier = Modifier.fillMaxSize().padding(8.dp))
@@ -310,6 +339,7 @@ fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () ->
             Text(producto?.name?.uppercase() ?: "PRODUCTO", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
             Text(mensaje, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, color = if (esApto) Color(0xFF1B5E20) else Color(0xFFB71C1C))
 
+            // Información detallada en caso de peligro
             if (!esApto && !producto?.allergens.isNullOrEmpty()) {
                 Text("Alérgenos detectados: ${producto?.allergens?.joinToString(", ")}", color = AlertRed, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp), textAlign = TextAlign.Center)
             }

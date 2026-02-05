@@ -5,13 +5,15 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 
 class GroupViewModel : ViewModel() {
-    private val db = FirebaseFirestore.getInstance()
-    private val groupManager = GroupManager()
+    private val db = FirebaseFirestore.getInstance() // Instancia de la BD
+    private val groupManager = GroupManager() // Clase auxiliar para operaciones de grupos
 
+    // Estado reactivo: cuando cambia esta lista, la UI se actualiza automáticamente
     var misGrupos = mutableStateOf<List<GroupProfile>>(emptyList())
 
 
     fun cargarGrupos(userId: String) {
+        //se encarga de actualizar en tiempo real el estado de los grupos si alguien te añade a un grupo, aparecerá sin reiniciar la app
         groupManager.escucharMisGrupos(userId) { lista ->
             misGrupos.value = lista
         }
@@ -34,6 +36,7 @@ class GroupViewModel : ViewModel() {
         }
     }
 
+    //esta funcion se encarga de obtener los nombres de los usuarios para los grupos con los ID
     fun obtenerNombresMiembros(miembrosIds: List<String>, onResult: (List<String>) -> Unit) {
 
         if (miembrosIds.isEmpty()) {
@@ -53,14 +56,16 @@ class GroupViewModel : ViewModel() {
             }
     }
 
+    //esta funcion es para invitar a los usuarios al grupo
     fun invitarUsuario(context: android.content.Context, groupId: String, nuevoMiembroId: String) {
-
+// Primero verifica que el usuario existe antes de intentar añadirlo
         db.collection("users").document(nuevoMiembroId).get()
             .addOnSuccessListener { document ->
                 val nombreInvitado = document.getString("nombre") ?: "El usuario"
 
                 groupManager.añadirMiembroPorId(groupId, nuevoMiembroId) { exito ->
                     if (exito) {
+                        //un mensaje emergente para informar al usuario que se ha invitado correctamente
                         android.widget.Toast.makeText(
                             context,
                             "$nombreInvitado ha sido agregado correctamente",

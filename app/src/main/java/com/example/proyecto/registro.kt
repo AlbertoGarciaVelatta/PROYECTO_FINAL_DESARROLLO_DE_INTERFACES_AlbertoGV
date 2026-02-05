@@ -11,8 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.proyecto.ui.theme.BackgroundMint
 import com.example.proyecto.ui.theme.SafeGreen
 import com.example.proyecto.ui.theme.SlateGray
@@ -26,16 +28,22 @@ fun RegistroMinimoScreen(
     var nombre by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val alergiasSeleccionadas = remember { mutableStateListOf<String>() }
-    val opcionesAlergias = listOf("GLUTEN", "LACTOSA", "FRUTOS SECOS", "HUEVO", "PESCADO", "SOJA")
+
+    val opcionesAlergias = listOf(
+        "GLUTEN", "LACTOSA", "HUEVO", "FRUTOS SECOS",
+        "CACAHUETES", "SOJA", "PESCADO", "CRUSTÁCEOS",
+        "MOLUSCOS", "MOSTAZA", "SÉSAMO", "SULFITOS", "ALTRAMUZ", "APIO"
+    )
+
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundMint)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Image(
             painter = painterResource(id = R.drawable.logoentero),
             contentDescription = "AllergyControl",
@@ -45,7 +53,7 @@ fun RegistroMinimoScreen(
             contentScale = ContentScale.FillWidth
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
             OutlinedTextField(
@@ -56,7 +64,7 @@ fun RegistroMinimoScreen(
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = SafeGreen)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = password,
@@ -68,41 +76,68 @@ fun RegistroMinimoScreen(
             )
 
             if (!isLoginMode) {
-                Spacer(modifier = Modifier.height(30.dp))
-                Text("Mis Alergias:", style = MaterialTheme.typography.titleMedium, color = SlateGray )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text("Mis Alergias:", style = MaterialTheme.typography.titleMedium, color = SlateGray)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                opcionesAlergias.forEach { alergia ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = alergiasSeleccionadas.contains(alergia),
-                            onCheckedChange = {
-                                if (it) alergiasSeleccionadas.add(alergia)
-                                else alergiasSeleccionadas.remove(alergia)
-                            },
-                            colors = CheckboxDefaults.colors(checkedColor = SafeGreen)
-                        )
-                        Text(text = alergia, color = SlateGray )
+                opcionesAlergias.chunked(2).forEach { fila ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        fila.forEach { alergia ->
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = alergiasSeleccionadas.contains(alergia),
+                                    onCheckedChange = {
+                                        if (it) alergiasSeleccionadas.add(alergia)
+                                        else alergiasSeleccionadas.remove(alergia)
+                                    },
+                                    colors = CheckboxDefaults.colors(checkedColor = SafeGreen)
+                                )
+                                Text(
+                                    text = alergia,
+                                    color = SlateGray,
+                                    fontSize = 11.sp,
+                                    maxLines = 1
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
             Button(
                 onClick = { onAction(nombre, password, alergiasSeleccionadas.toList()) },
-                modifier = Modifier.fillMaxWidth().height(55.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = SafeGreen)
             ) {
-                Text(if (isLoginMode) "INGRESAR" else "REGISTRARSE")
+                Text(
+                    text = if (isLoginMode) "INGRESAR" else "REGISTRARSE",
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             TextButton(
                 onClick = onSwitchMode,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Text(if (isLoginMode) "¿No tienes cuenta? Crea una" else "¿Ya tienes cuenta? Entra", color = SafeGreen)
+                Text(
+                    text = if (isLoginMode) "¿No tienes cuenta? Crea una" else "¿Ya tienes cuenta? Entra",
+                    color = SafeGreen
+                )
             }
+
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }

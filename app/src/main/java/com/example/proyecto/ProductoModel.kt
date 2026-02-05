@@ -23,8 +23,6 @@ class ProductViewModel : ViewModel() {
 
     var scanResultMessage = mutableStateOf<String?>(null)
     var ultimoProductoEscaneado = mutableStateOf<Product?>(null)
-
-    // Nueva variable para saber si estamos en modo grupo
     var grupoActivo = mutableStateOf<GroupProfile?>(null)
 
     init {
@@ -67,7 +65,6 @@ class ProductViewModel : ViewModel() {
             }
     }
 
-    // --- FUNCIÓN UNIFICADA DE BÚSQUEDA ---
     fun buscarYRegistrarProducto(codigo: String, uid: String) {
         isLoading.value = true
         val grupo = grupoActivo.value
@@ -97,7 +94,6 @@ class ProductViewModel : ViewModel() {
             }
     }
 
-    // --- PROCESAMIENTO GRUPAL ---
     private fun obtenerMiembrosYProcesar(uid: String, producto: Product, grupo: GroupProfile) {
         db.collection("users")
             .whereIn("uid", grupo.miembros)
@@ -122,7 +118,6 @@ class ProductViewModel : ViewModel() {
             }
     }
 
-    // --- PROCESAMIENTO INDIVIDUAL ---
     private fun procesarResultadoIndividual(uid: String, producto: Product, misAlergias: List<String>) {
         val conflictivos = producto.allergens.filter { pA ->
             misAlergias.any { it.trim().equals(pA.trim(), ignoreCase = true) }
@@ -145,7 +140,6 @@ class ProductViewModel : ViewModel() {
             .addOnCompleteListener { isLoading.value = false }
     }
 
-
     private fun consultarApiExterna(codigo: String, onResult: (Product?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -158,7 +152,11 @@ class ProductViewModel : ViewModel() {
                         id = codigo,
                         name = p.optString("product_name", "Desconocido"),
                         store = p.optString("brands", "Marca desconocida"),
-                        allergens = mapearAlergenosApi(p.optString("allergens_tags", ""), p.optString("product_name", ""), p.optString("ingredients_text", "")),
+                        allergens = mapearAlergenosApi(
+                            p.optString("allergens_tags", ""),
+                            p.optString("product_name", ""),
+                            p.optString("ingredients_text", "")
+                        ),
                         imageUrl = p.optString("image_url", ""),
                         isVerified = false
                     )
@@ -170,12 +168,46 @@ class ProductViewModel : ViewModel() {
 
     private fun mapearAlergenosApi(tags: String, nombre: String, ingredientes: String): List<String> {
         val detectados = mutableListOf<String>()
-        val texto = (nombre + " " + ingredientes).lowercase()
-        val sinLactosa = texto.contains("sin lactosa") || tags.contains("en:lactose-free")
-        val dic = mapOf("milk" to "LACTOSA", "gluten" to "GLUTEN", "nuts" to "FRUTOS SECOS", "egg" to "HUEVO", "soy" to "SOJA")
-        tags.split(",").forEach { tag ->
-            dic.forEach { (k, v) -> if (tag.contains(k)) { if (!(v == "LACTOSA" && sinLactosa)) detectados.add(v) } }
+        val textoCompleto = "$nombre $ingredientes".lowercase()
+        val tagsList = tags.lowercase()
+
+        val categorias = mapOf(
+            "MOLUSCOS" to listOf("en:molluscs", "mejillón", "almeja", "pulpo", "calamar", "sepia", "caracol"),
+            "CRUSTÁCEOS" to listOf("en:crustaceans", "gamba", "langostino", "cangrejo", "buey de mar", "cigala"),
+            "GLUTEN" to listOf("en:gluten", "en:wheat", "en:barley", "en:rye", "en:oats", "trigo", "cebada", "centeno", "avena", "espelta", "kamut"),
+            "LACTOSA" to listOf("en:milk", "en:dairy", "leche", "lactosa", "suero", "mantequilla", "queso", "yogur", "caseína", "nata"),
+            "HUEVO" to listOf("en:eggs", "huevo", "albúmina", "yema", "lysozyme", "ovomucina"),
+            "FRUTOS SECOS" to listOf("en:nuts", "en:tree-nuts", "nuez", "almendra", "avellana", "anacardo", "pistacho", "piñón", "castaña", "nuez de brasil", "macadamia"),
+            "CACAHUETES" to listOf("en:peanuts", "cacahuete", "maní", "arachis"),
+            "SOJA" to listOf("en:soya", "en:soybeans", "soja", "lecitina de soja", "glycine max"),
+            "PESCADO" to listOf("en:fish", "pescado", "bacalao", "atún", "merluza", "salmón"),
+            "MARISCO" to listOf("en:crustaceans", "en:molluscs", "marisco", "gamba", "langostino", "mejillón", "almeja", "calamar", "cangrejo"),
+            "MOSTAZA" to listOf("en:mustard", "mostaza", "sinapis"),
+            "SÉSAMO" to listOf("en:sesame-seeds", "sésamo", "ajonjolí"),
+            "SULFITOS" to listOf("en:sulphites", "sulfitos", "e220", "dióxido de azufre")
+        )
+
+        categorias.forEach { (categoria, palabrasClave) ->
+            if (palabrasClave.any { it.startsWith("en:") && tagsList.contains(it) }) {
+                detectados.add(categoria)
+            }
         }
+
+        categorias.forEach { (categoria, palabrasClave) ->
+            val palabrasSoloTexto = palabrasClave.filter { !it.startsWith("en:") }
+            if (palabrasSoloTexto.any { textoCompleto.contains(it) }) {
+                if (!textoCompleto.contains("sin ${categoria.lowercase()}")) {
+                    detectados.add(categoria)
+                }
+            }
+        }
+
+        if (textoCompleto.contains("puede contener") || textoCompleto.contains("trazas de")) {
+            categorias.keys.forEach { cat ->
+                if (textoCompleto.contains(cat.lowercase())) detectados.add(cat)
+            }
+        }
+
         return detectados.distinct()
     }
 }

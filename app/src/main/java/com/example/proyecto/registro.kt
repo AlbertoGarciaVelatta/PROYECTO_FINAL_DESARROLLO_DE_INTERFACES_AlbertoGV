@@ -35,14 +35,14 @@ fun RegistroMinimoScreen(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // BANNER A TODO LO ANCHO
+
         Image(
             painter = painterResource(id = R.drawable.logoentero),
             contentDescription = "AllergyControl",
             modifier = Modifier
                 .fillMaxWidth()
                 .height(140.dp),
-            contentScale = ContentScale.FillWidth // Ocupa todo el ancho sin márgenes
+            contentScale = ContentScale.FillWidth
         )
 
         Spacer(modifier = Modifier.height(40.dp))

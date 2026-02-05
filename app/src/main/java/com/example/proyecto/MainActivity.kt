@@ -35,10 +35,9 @@ import com.example.proyecto.ui.theme.ProyectoTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
-// --- PALETA DE COLORES ---
 val MintBackground = Color(0xFFF1F8F5)
 val SafeGreen = Color(0xFF4CAF50)
-val SlateGray = Color(0xFF607D8B)
+val Charcoal = Color(0xFF263238)
 val AlertRed = Color(0xFFD32F2F)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,6 +61,7 @@ class MainActivity : ComponentActivity() {
                 var isLoginMode by remember { mutableStateOf(true) }
                 var mostrarDialogoGrupo by remember { mutableStateOf(false) }
                 var mostrarDialogoInvitacion by remember { mutableStateOf<String?>(null) }
+                var miembrosAMostrar by remember { mutableStateOf<List<String>?>(null) }
 
                 val resultMsg by productViewModel.scanResultMessage
 
@@ -108,7 +108,11 @@ class MainActivity : ComponentActivity() {
                     }
 
                     mostrarDialogoInvitacion?.let { groupId ->
-                        DialogoInvitarUsuario(onDismiss = { mostrarDialogoInvitacion = null }, onConfirm = { amigoId -> groupViewModel.invitarUsuario(groupId, amigoId) })
+                        DialogoInvitarUsuario(onDismiss = { mostrarDialogoInvitacion = null }, onConfirm = { amigoId -> groupViewModel.invitarUsuario(context, groupId, amigoId) })
+                    }
+
+                    miembrosAMostrar?.let { lista ->
+                        DialogoVerMiembros(nombres = lista, onDismiss = { miembrosAMostrar = null })
                     }
 
                     ModalNavigationDrawer(
@@ -118,6 +122,7 @@ class MainActivity : ComponentActivity() {
                                 DrawerContent(
                                     userUid = userUid,
                                     productViewModel = productViewModel,
+                                    groupViewModel = groupViewModel,
                                     clipboardManager = clipboardManager,
                                     context = context,
                                     misGrupos = groupViewModel.misGrupos.value,
@@ -126,7 +131,8 @@ class MainActivity : ComponentActivity() {
                                         scope.launch { drawerState.close() }
                                     },
                                     onInviteClick = { mostrarDialogoInvitacion = it },
-                                    onDeleteGroupClick = { groupViewModel.eliminarGrupo(it) },
+                                    onDeleteGroupClick = { groupViewModel.eliminarGrupo(context, it) },
+                                    onViewMembersClick = { miembrosAMostrar = it },
                                     onCloseDrawer = { scope.launch { drawerState.close() } }
                                 )
                             }
@@ -173,22 +179,23 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
 @Composable
 fun DrawerContent(
     userUid: String?,
     productViewModel: ProductViewModel,
+    groupViewModel: GroupViewModel,
     clipboardManager: androidx.compose.ui.platform.ClipboardManager,
     context: android.content.Context,
     misGrupos: List<GroupProfile>,
     onCreateGroupClick: () -> Unit,
     onInviteClick: (String) -> Unit,
     onDeleteGroupClick: (String) -> Unit,
+    onViewMembersClick: (List<String>) -> Unit,
     onCloseDrawer: () -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
-            Box(modifier = Modifier.fillMaxWidth().background(SlateGray ).padding(24.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().background(Charcoal).padding(24.dp)) {
                 Column {
                     Text("TU ID DE USUARIO", color = Color.White.copy(0.6f), fontSize = 10.sp)
                     Text(userUid?.take(15) ?: "", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -217,21 +224,34 @@ fun DrawerContent(
 
         item {
             Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("MIS GRUPOS", fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text("MIS GRUPOS", fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), color = Charcoal)
                 IconButton(onClick = onCreateGroupClick) { Icon(Icons.Default.AddCircle, null, tint = SafeGreen) }
             }
         }
 
         items(misGrupos) { grupo ->
+            val esAdmin = grupo.adminId == userUid
             NavigationDrawerItem(
-                label = { Text(grupo.nombre) },
+                label = {
+                    Column {
+                        Text(grupo.nombre, fontWeight = FontWeight.Bold)
+                        TextButton(
+                            onClick = { groupViewModel.obtenerNombresMiembros(grupo.miembros) { onViewMembersClick(it) } },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Icon(Icons.Default.Visibility, null, modifier = Modifier.size(12.dp), tint = SafeGreen)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Ver ${grupo.miembros.size} miembros", fontSize = 10.sp, color = SafeGreen)
+                        }
+                    }
+                },
                 selected = productViewModel.grupoActivo.value?.id == grupo.id,
                 onClick = { productViewModel.grupoActivo.value = grupo; onCloseDrawer() },
                 icon = { Icon(Icons.Default.Groups, null) },
                 badge = {
-                    Row {
-                        IconButton(onClick = { onInviteClick(grupo.id) }) { Icon(Icons.Default.PersonAdd, null, Modifier.size(20.dp)) }
-                        if (grupo.adminId == userUid) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { onInviteClick(grupo.id) }) { Icon(Icons.Default.PersonAdd, null, Modifier.size(20.dp), tint = SafeGreen) }
+                        if (esAdmin) {
                             IconButton(onClick = { onDeleteGroupClick(grupo.id) }) { Icon(Icons.Default.Delete, null, Modifier.size(20.dp), tint = AlertRed) }
                         }
                     }
@@ -249,16 +269,21 @@ fun MainScreenContent(isLoading: Boolean, grupoActivo: GroupProfile?, onDesactiv
             CircularProgressIndicator(modifier = Modifier.size(60.dp), color = SafeGreen)
         } else {
             if (grupoActivo != null) {
-                SuggestionChip(onClick = onDesactivarGrupo, label = { Text("Grupo: ${grupoActivo.nombre}") }, icon = { Icon(Icons.Default.Close, null, Modifier.size(16.dp)) })
+                InputChip(
+                    selected = true,
+                    onClick = onDesactivarGrupo,
+                    label = { Text("Grupo: ${grupoActivo.nombre}") },
+                    trailingIcon = { Icon(Icons.Default.Close, null, Modifier.size(16.dp)) }
+                )
                 Spacer(modifier = Modifier.height(16.dp))
             }
             Button(
                 onClick = onScanClick, modifier = Modifier.size(220.dp),
-                shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = if (grupoActivo != null) SlateGray  else SafeGreen),
+                shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = if (grupoActivo != null) Charcoal else SafeGreen),
                 elevation = ButtonDefaults.buttonElevation(12.dp)
             ) { Icon(Icons.Default.QrCodeScanner, null, modifier = Modifier.size(100.dp)) }
             Spacer(modifier = Modifier.height(24.dp))
-            Text(if (grupoActivo != null) "MODO GRUPO ACTIVO" else "MODO PERSONAL", fontWeight = FontWeight.Bold)
+            Text(if (grupoActivo != null) "MODO GRUPO ACTIVO" else "MODO PERSONAL", fontWeight = FontWeight.Bold, color = Charcoal)
         }
     }
 }
@@ -286,14 +311,34 @@ fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () ->
             Text(mensaje, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, color = if (esApto) Color(0xFF1B5E20) else Color(0xFFB71C1C))
 
             if (!esApto && !producto?.allergens.isNullOrEmpty()) {
-                Text("Ingredientes de riesgo: ${producto?.allergens?.joinToString(", ")}", color = AlertRed, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp), textAlign = TextAlign.Center)
+                Text("Alérgenos detectados: ${producto?.allergens?.joinToString(", ")}", color = AlertRed, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp), textAlign = TextAlign.Center)
             }
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = colorP), modifier = Modifier.fillMaxWidth()) {
-                Text("CONTINUAR", fontWeight = FontWeight.Bold)
+                Text("CERRAR", fontWeight = FontWeight.Bold)
             }
         }
     }
+}
+
+@Composable
+fun DialogoVerMiembros(nombres: List<String>, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Integrantes del Grupo", fontWeight = FontWeight.Bold) },
+        text = {
+            LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp)) {
+                items(nombres) { nombre ->
+                    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.AccountCircle, null, tint = SafeGreen, modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(nombre, fontSize = 16.sp)
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("CERRAR", color = SafeGreen) } }
+    )
 }
 
 @Composable
@@ -305,5 +350,5 @@ fun DialogoCrearGrupo(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
 @Composable
 fun DialogoInvitarUsuario(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var id by remember { mutableStateOf("") }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Invitar") }, text = { OutlinedTextField(value = id, onValueChange = { id = it }, label = { Text("Pega el ID aquí") }) }, confirmButton = { Button(onClick = { onConfirm(id); onDismiss() }) { Text("Añadir") } })
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("Invitar") }, text = { OutlinedTextField(value = id, onValueChange = { id = it }, label = { Text("ID Usuario") }) }, confirmButton = { Button(onClick = { onConfirm(id); onDismiss() }) { Text("Añadir") } })
 }

@@ -8,7 +8,7 @@ class AuthManager {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
-    // Email consistente basado en el nombre para que el login funcione
+
     private fun generarFakeEmail(nombre: String): String {
         return "${nombre.lowercase().replace(" ", "")}@allergycontrol.com"
     }

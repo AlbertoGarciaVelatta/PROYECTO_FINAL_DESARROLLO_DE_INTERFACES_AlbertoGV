@@ -104,6 +104,9 @@ en la creacion de usuario
     *  **Rojo (NO APTO):** Se han detectado alérgenos que coinciden con tu perfil.
  
     *  aqui esta el trozo de codigo del main que se encarga de mostrar el resultado
+      
+
+
 
  @Composable
 fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () -> Unit) {

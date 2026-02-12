@@ -63,7 +63,7 @@ class GroupViewModel : ViewModel() {
             .addOnSuccessListener { document ->
                 val nombreInvitado = document.getString("nombre") ?: "El usuario"
 
-                groupManager.añadirMiembroPorId(groupId, nuevoMiembroId) { exito ->
+                groupManager.anadirMiembroPorId(groupId, nuevoMiembroId) { exito ->
                     if (exito) {
                         //un mensaje emergente para informar al usuario que se ha invitado correctamente
                         android.widget.Toast.makeText(

@@ -1,10 +1,7 @@
 package com.example.proyecto
 
 import com.google.firebase.firestore.IgnoreExtraProperties
-//aqui se enumera los tipos de alergenos
-enum class Allergen { GLUTEN, LACTOSE, NUTS, SHELLFISH, EGGS, FISH }
 
-//aqui esta los modelos de datos
 //aqui esta los productos
 @IgnoreExtraProperties
 data class Product(

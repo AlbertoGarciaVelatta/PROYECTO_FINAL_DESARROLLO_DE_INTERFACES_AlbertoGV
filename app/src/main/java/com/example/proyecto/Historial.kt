@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.proyecto
 
 import androidx.compose.foundation.clickable
@@ -9,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,10 +72,11 @@ fun InformeSaludScreen(viewModel: ProductViewModel) {
                         Spacer(modifier = Modifier.height(8.dp))
                         val progreso = if (total > 0) (stats["Aptos"]!!.toFloat() / total) else 0f
                         LinearProgressIndicator(
-                            progress = progreso,
-                            modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp)),
-                            color = SafeGreen,
-                            trackColor = WarningRed.copy(0.2f)
+                        progress = { progreso },
+                        modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp)),
+                        color = SafeGreen,
+                        trackColor = WarningRed.copy(0.2f),
+                        strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                         )
                         Text("${(progreso * 100).toInt()}% de productos aptos", fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
                     }
@@ -94,9 +98,7 @@ fun InformeSaludScreen(viewModel: ProductViewModel) {
             items(datosAMostrar) { item ->
                 ListItem(
                     // NUEVO: Añadimos el clickable para que reaccione al toque
-                    modifier = Modifier.clickable {
-                        viewModel.mostrarDetalleDesdeHistorial(item)
-                    },
+                    modifier = Modifier.clickable { viewModel.mostrarDetalleDesdeHistorial(item) },
                     headlineContent = { Text(item.name, fontWeight = FontWeight.Medium) },
                     supportingContent = {
                         Column {

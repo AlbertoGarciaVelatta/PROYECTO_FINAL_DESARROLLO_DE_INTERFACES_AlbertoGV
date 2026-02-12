@@ -185,7 +185,7 @@ class ProductViewModel : ViewModel() {
                     )
                     withContext(Dispatchers.Main) { onResult(nuevo) }
                 } else withContext(Dispatchers.Main) { onResult(null) }
-            } catch (e: Exception) { withContext(Dispatchers.Main) { onResult(null) } }
+            } catch (_: Exception) { withContext(Dispatchers.Main) { onResult(null) } }
         }
     }
 

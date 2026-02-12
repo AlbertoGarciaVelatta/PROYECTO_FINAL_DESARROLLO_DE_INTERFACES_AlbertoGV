@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -193,7 +194,7 @@ class MainActivity : ComponentActivity() {
                                             Icon(Icons.Default.GraphicEq, null, tint = Color.White, modifier = Modifier.padding(end = 8.dp))
                                         }
                                         IconButton(onClick = { firebaseAuth.signOut(); userUid = null }) {
-                                            Icon(Icons.Default.Logout, null, tint = Color.White)
+                                            Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color.White)
                                         }
                                     },
                                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = colorDinamico)
@@ -420,7 +421,7 @@ fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () ->
             // Imagen del producto
             if (!producto?.imageUrl.isNullOrEmpty()) {
                 Surface(modifier = Modifier.size(120.dp), shape = RoundedCornerShape(12.dp), color = Color.White) {
-                    AsyncImage(model = producto?.imageUrl, contentDescription = null, modifier = Modifier.fillMaxSize().padding(8.dp))
+                    AsyncImage(model = producto.imageUrl, contentDescription = null, modifier = Modifier.fillMaxSize().padding(8.dp))
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -429,7 +430,7 @@ fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () ->
 
             // Información detallada en caso de peligro
             if (!esApto && !producto?.allergens.isNullOrEmpty()) {
-                Text("Alérgenos detectados: ${producto?.allergens?.joinToString(", ")}", color = WarningRed, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp), textAlign = TextAlign.Center)
+                Text("Alérgenos detectados: ${producto.allergens.joinToString(", ")}", color = WarningRed, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp), textAlign = TextAlign.Center)
             }
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = colorP), modifier = Modifier.fillMaxWidth()) {

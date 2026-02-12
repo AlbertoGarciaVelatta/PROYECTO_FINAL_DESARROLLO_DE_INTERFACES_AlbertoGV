@@ -83,7 +83,7 @@ class GroupManager {
      * Utiliza 'FieldValue.arrayUnion' para añadir un miembro sin necesidad de descargar
      * toda la lista de IDs primero, ahorrando ancho de banda.
      */
-    fun añadirMiembroPorId(groupId: String, nuevoMiembroId: String, onResult: (Boolean) -> Unit) {
+    fun anadirMiembroPorId(groupId: String, nuevoMiembroId: String, onResult: (Boolean) -> Unit) {
         db.collection("groups").document(groupId)
             .update("miembros", FieldValue.arrayUnion(nuevoMiembroId))
             .addOnSuccessListener { onResult(true) }.addOnFailureListener { onResult(false) }

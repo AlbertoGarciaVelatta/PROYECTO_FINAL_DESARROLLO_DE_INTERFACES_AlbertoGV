@@ -156,7 +156,7 @@ class MainActivity : ComponentActivity() {
                         drawerContent = {
                             ModalDrawerSheet(
                                 modifier = Modifier.width(320.dp),
-                                drawerContainerColor = fondoDinamico // Color de fondo del menú
+                                drawerContainerColor = fondoDinamico
                             ) {
                                 DrawerContent(
                                     userUid = userUid,

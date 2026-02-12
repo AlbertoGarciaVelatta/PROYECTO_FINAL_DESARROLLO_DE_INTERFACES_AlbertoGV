@@ -166,7 +166,7 @@ Y ya dentro para poder utilizar sus funciones crearemos una cuenta
 
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/d1aef304-0234-483a-bd0d-1022b089c47e" />
 
-Y como nuestra app consiste en saber si somos alergicos a determinados productos, al momento de crear nuestro susario tendremos que seleccionar las alergias
+Y como nuestra app consiste en saber si somos alergicos a determinados productos, al momento de crear nuestro usuario tendremos que seleccionar las alergias
 
 <img width="150" height="270" alt="image" src="https://github.com/user-attachments/assets/c34cc898-00c1-45dd-84c4-7c7adcfa8e73" />
 

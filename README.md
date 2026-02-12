@@ -334,7 +334,7 @@ Memoria RAM: Uso de la librería Coil para la gestión de imágenes. Coil gestio
 Batería: El escáner de cámara (CameraX) se vincula al ciclo de vida (Lifecycle) de la pantalla. Esto significa que la cámara se apaga instantáneamente cuando el usuario sale de la pantalla de escaneo o minimiza la app, ahorrando energía significativamente.
 
 ## Informes (RA5)
-Para ser totalmente sincero, intenté hacerlo cuando ya tenía la app prácticamente hecha y se me complicó muchísimo. No paraban de salirme errores por todas partes y me acabé estresando por no encontrar una solución, así que decidí dejarlo y volví al último commit, ya que no me parecia algo necesario en la aplicación.
+Es el actual apartado de informes
 
 ##  Paleta de Colores Corporativa
 intente que la paleta de colores fuera proxima al verde porque es u color que representa la salud,
@@ -344,6 +344,7 @@ aunque para el apartado de grupos he usado un color mas oscuro para que fuera ev
 *  **Slate Gray** (`#607D8B`) - Tipografía secundaria y elementos de soporte.
 *  **Background Mint** (`#F1F8F5`) - Color de fondo principal para un estilo limpio y sanitario.
 *  **Card White** (`#FFFFFF`) - Superficie de los contenedores de información.
+*  **GroupPurple** (`#6200EE`) Menu lateral de grupos
 
 ## 💻 Instalación
 1. Clona este repositorio:

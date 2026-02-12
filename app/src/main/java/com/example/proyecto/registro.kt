@@ -13,9 +13,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.proyecto.ui.theme.BackgroundMint
-import com.example.proyecto.ui.theme.SafeGreen
-import com.example.proyecto.ui.theme.SlateGray
+import com.example.proyecto.ui.theme.*
 
 /**
  * PANTALLA: RegistroMinimoScreen

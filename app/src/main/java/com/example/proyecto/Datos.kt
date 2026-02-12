@@ -32,9 +32,12 @@ data class GroupProfile(
     val miembros: List<String> = emptyList()
 )
 
-//esta clase esta en desuso porque al final no acabe pudiendo integrar los infermes
+//esta clase es para el historial
+
 data class HistoryItem(
     val name: String = "",
+    @field:JvmField
     val isApto: Boolean = false,
-    val timestamp: com.google.firebase.Timestamp? = null
+    val timestamp: com.google.firebase.Timestamp? = null,
+    val context: String = "Personal"
 )

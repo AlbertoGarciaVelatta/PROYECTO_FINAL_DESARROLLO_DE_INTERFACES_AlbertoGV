@@ -28,6 +28,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.proyecto.ui.theme.*
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -36,10 +37,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 //la paleta de colores se la app
-val MintBackground = Color(0xFFF1F8F5)
-val SafeGreen = Color(0xFF4CAF50)
-val Charcoal = Color(0xFF263238)
-val AlertRed = Color(0xFFD32F2F)
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -63,9 +61,21 @@ class MainActivity : ComponentActivity() {
                 // Estados reactivos para la navegación
                 var userUid by remember { mutableStateOf(firebaseAuth.currentUser?.uid) }
                 var isLoginMode by remember { mutableStateOf(true) }
+                var currentTab by remember { mutableStateOf("home") }
                 var mostrarDialogoGrupo by remember { mutableStateOf(false) }
                 var mostrarDialogoInvitacion by remember { mutableStateOf<String?>(null) }
                 var miembrosAMostrar by remember { mutableStateOf<List<String>?>(null) }
+
+                // ESTADO NUEVO: Controla si se ve la cámara
+                var mostrarScanner by remember { mutableStateOf(false) }
+
+                // --- LÓGICA DE COLORES DINÁMICOS ---
+                val grupoActivo = productViewModel.grupoActivo.value
+                val estaEnModoGrupo = grupoActivo != null
+                // Si hay grupo usamos GroupPurple, si no SafeGreen
+                val colorDinamico = if (estaEnModoGrupo) GroupPurple else SafeGreen
+                // El fondo debajo del botón cambia según el modo
+                val fondoDinamico = if (estaEnModoGrupo) Color(0xFFF3E5F5) else BackgroundMint
 
                 // Observador del mensaje de resultado del escáner
                 val resultMsg by productViewModel.scanResultMessage
@@ -99,15 +109,30 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // Gestión de permisos de cámara y callback del escáner
-                    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-                        if (it) {
-                            setContent {
-                                ScannerScreen { code ->
-                                    productViewModel.buscarYRegistrarProducto(code, userUid!!)
-                                    recreate()
-                                }
+                    // --- NUEVO: ESCUCHA POR VOZ SIEMPRE ACTIVA ---
+                    val permissionLauncherVoz = rememberLauncherForActivityResult(
+                        ActivityResultContracts.RequestPermission()
+                    ) { concedido ->
+                        if (concedido) {
+                            productViewModel.iniciarEscuchaContinua(context) {
+                                mostrarScanner = true // Si detecta "Escanear", abre la cámara
                             }
+                        }
+                    }
+
+                    // Lanzamos la petición de micro al inicio
+                    LaunchedEffect(Unit) {
+                        permissionLauncherVoz.launch(Manifest.permission.RECORD_AUDIO)
+                    }
+
+                    // Gestión de permisos de cámara corrigiendo el error de setContent
+                    val permissionLauncher = rememberLauncherForActivityResult(
+                        ActivityResultContracts.RequestPermission()
+                    ) { concedido ->
+                        if (concedido) {
+                            mostrarScanner = true
+                        } else {
+                            Toast.makeText(context, "Permiso de cámara necesario", Toast.LENGTH_SHORT).show()
                         }
                     }
 
@@ -128,7 +153,10 @@ class MainActivity : ComponentActivity() {
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
-                            ModalDrawerSheet(modifier = Modifier.width(320.dp)) {
+                            ModalDrawerSheet(
+                                modifier = Modifier.width(320.dp),
+                                drawerContainerColor = fondoDinamico // Color de fondo del menú
+                            ) {
                                 DrawerContent(
                                     userUid = userUid,
                                     productViewModel = productViewModel,
@@ -136,6 +164,7 @@ class MainActivity : ComponentActivity() {
                                     clipboardManager = clipboardManager,
                                     context = context,
                                     misGrupos = groupViewModel.misGrupos.value,
+                                    colorApp = GroupPurple,
                                     onCreateGroupClick = {
                                         mostrarDialogoGrupo = true
                                         scope.launch { drawerState.close() }
@@ -149,35 +178,95 @@ class MainActivity : ComponentActivity() {
                         }
                     ) {
                         Scaffold(
-                            containerColor = MintBackground,
+                            containerColor = fondoDinamico, // CAMBIO: Color debajo del botón
                             topBar = {
                                 CenterAlignedTopAppBar(
-                                    title = { Text("ALLERGY CONTROL", fontWeight = FontWeight.Black) },
-                                    navigationIcon = { IconButton(onClick = { scope.launch { drawerState.open() } }) { Icon(Icons.Default.Menu, null) } },
-                                    actions = { IconButton(onClick = { firebaseAuth.signOut(); userUid = null }) { Icon(Icons.Default.Logout, null) } }
+                                    title = { Text("ALLERGY CONTROL", fontWeight = FontWeight.Black, color = Color.White) },
+                                    navigationIcon = {
+                                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                            Icon(Icons.Default.Menu, null, tint = Color.White)
+                                        }
+                                    },
+                                    actions = {
+                                        // Icono que indica que la app está escuchando
+                                        if (productViewModel.estaEscuchando.value) {
+                                            Icon(Icons.Default.GraphicEq, null, tint = Color.White, modifier = Modifier.padding(end = 8.dp))
+                                        }
+                                        IconButton(onClick = { firebaseAuth.signOut(); userUid = null }) {
+                                            Icon(Icons.Default.Logout, null, tint = Color.White)
+                                        }
+                                    },
+                                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = colorDinamico)
                                 )
+                            },
+                            bottomBar = {
+                                NavigationBar(containerColor = Color.White) {
+                                    NavigationBarItem(
+                                        selected = currentTab == "home",
+                                        onClick = { currentTab = "home" },
+                                        label = { Text("Inicio") },
+                                        icon = { Icon(Icons.Default.QrCodeScanner, null) },
+                                        colors = NavigationBarItemDefaults.colors(selectedIconColor = colorDinamico, selectedTextColor = colorDinamico)
+                                    )
+                                    NavigationBarItem(
+                                        selected = currentTab == "stats",
+                                        onClick = { currentTab = "stats" },
+                                        label = { Text("Informes") },
+                                        icon = { Icon(Icons.Default.BarChart, null) },
+                                        colors = NavigationBarItemDefaults.colors(selectedIconColor = colorDinamico, selectedTextColor = colorDinamico)
+                                    )
+                                }
                             }
                         ) { padding ->
                             Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-                                MainScreenContent(
-                                    isLoading = productViewModel.isLoading.value,
-                                    grupoActivo = productViewModel.grupoActivo.value,
-                                    onDesactivarGrupo = { productViewModel.grupoActivo.value = null }
-                                ) {
-                                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                                // Cambiamos el contenido según la pestaña seleccionada
+                                when (currentTab) {
+                                    "home" -> {
+                                        MainScreenContent(
+                                            isLoading = productViewModel.isLoading.value,
+                                            grupoActivo = productViewModel.grupoActivo.value,
+                                            colorActual = colorDinamico, // Pasamos el color para el botón
+                                            onDesactivarGrupo = { productViewModel.grupoActivo.value = null }
+                                        ) {
+                                            permissionLauncher.launch(Manifest.permission.CAMERA)
+                                        }
+                                    }
+                                    "stats" -> {
+                                        InformeSaludScreen(productViewModel)
+                                    }
                                 }
-// ANIMACIÓN DE RESULTADO: Aparece cuando hay una respuesta del escáner
+
+                                // CAPA DEL SCANNER: Solo aparece si mostrarScanner es true
+                                if (mostrarScanner) {
+                                    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                                        ScannerScreen { code ->
+                                            productViewModel.escanearProducto(code)
+                                            mostrarScanner = false // Cerramos el scanner al detectar código
+                                        }
+                                        // Botón para cerrar el scanner manualmente
+                                        IconButton(
+                                            onClick = { mostrarScanner = false },
+                                            modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
+                                        ) {
+                                            Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(32.dp))
+                                        }
+                                    }
+                                }
+
+                                // Mantenemos la animación de resultado (visible siempre que haya mensaje)
                                 AnimatedVisibility(
                                     visible = resultMsg != null,
                                     enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
                                     exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
                                 ) {
                                     resultMsg?.let { msg ->
-                                        ResultadoVisualGigante(
-                                            mensaje = msg,
-                                            producto = productViewModel.ultimoProductoEscaneado.value,
-                                            onDismiss = { productViewModel.scanResultMessage.value = null }
-                                        )
+                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                            ResultadoVisualGigante(
+                                                mensaje = msg,
+                                                producto = productViewModel.ultimoProductoEscaneado.value,
+                                                onDismiss = { productViewModel.scanResultMessage.value = null }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -201,6 +290,7 @@ fun DrawerContent(
     clipboardManager: androidx.compose.ui.platform.ClipboardManager,
     context: android.content.Context,
     misGrupos: List<GroupProfile>,
+    colorApp: Color, // NUEVO
     onCreateGroupClick: () -> Unit,
     onInviteClick: (String) -> Unit,
     onDeleteGroupClick: (String) -> Unit,
@@ -210,7 +300,7 @@ fun DrawerContent(
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         // Cabecera con el ID del usuario
         item {
-            Box(modifier = Modifier.fillMaxWidth().background(Charcoal).padding(24.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().background(colorApp).padding(24.dp)) {
                 Column {
                     Text("TU ID DE USUARIO", color = Color.White.copy(0.6f), fontSize = 10.sp)
                     Text(userUid?.take(15) ?: "", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -225,23 +315,12 @@ fun DrawerContent(
                 }
             }
         }
-        // Selector de "Modo Personal", para salir del modo grupal
-        item {
-            NavigationDrawerItem(
-                label = { Text("MODO PERSONAL") },
-                selected = productViewModel.grupoActivo.value == null,
-                onClick = { productViewModel.grupoActivo.value = null; onCloseDrawer() },
-                icon = { Icon(Icons.Default.Person, null) },
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-        }
 
         // Cabecera de Grupos
         item {
             Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("MIS GRUPOS", fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), color = Charcoal)
-                IconButton(onClick = onCreateGroupClick) { Icon(Icons.Default.AddCircle, null, tint = SafeGreen) }
+                Text("MIS GRUPOS", fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), color = colorApp)
+                IconButton(onClick = onCreateGroupClick) { Icon(Icons.Default.AddCircle, null, tint = colorApp) }
             }
         }
 
@@ -256,20 +335,21 @@ fun DrawerContent(
                             onClick = { groupViewModel.obtenerNombresMiembros(grupo.miembros) { onViewMembersClick(it) } },
                             contentPadding = PaddingValues(0.dp)
                         ) {
-                            Icon(Icons.Default.Visibility, null, modifier = Modifier.size(12.dp), tint = SafeGreen)
+                            Icon(Icons.Default.Visibility, null, modifier = Modifier.size(12.dp), tint = colorApp)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Ver ${grupo.miembros.size} miembros", fontSize = 10.sp, color = SafeGreen)
+                            Text("Ver ${grupo.miembros.size} miembros", fontSize = 10.sp, color = colorApp)
                         }
                     }
                 },
                 selected = productViewModel.grupoActivo.value?.id == grupo.id,
                 onClick = { productViewModel.grupoActivo.value = grupo; onCloseDrawer() },
                 icon = { Icon(Icons.Default.Groups, null) },
+                colors = NavigationDrawerItemDefaults.colors(selectedIconColor = colorApp, selectedTextColor = colorApp),
                 badge = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { onInviteClick(grupo.id) }) { Icon(Icons.Default.PersonAdd, null, Modifier.size(20.dp), tint = SafeGreen) }
+                        IconButton(onClick = { onInviteClick(grupo.id) }) { Icon(Icons.Default.PersonAdd, null, Modifier.size(20.dp), tint = colorApp) }
                         if (esAdmin) {
-                            IconButton(onClick = { onDeleteGroupClick(grupo.id) }) { Icon(Icons.Default.Delete, null, Modifier.size(20.dp), tint = AlertRed) }
+                            IconButton(onClick = { onDeleteGroupClick(grupo.id) }) { Icon(Icons.Default.Delete, null, Modifier.size(20.dp), tint = WarningRed) }
                         }
                     }
                 },
@@ -284,10 +364,16 @@ fun DrawerContent(
  * Muestra el botón de escaneo y el estado del modo actual.
  */
 @Composable
-fun MainScreenContent(isLoading: Boolean, grupoActivo: GroupProfile?, onDesactivarGrupo: () -> Unit, onScanClick: () -> Unit) {
+fun MainScreenContent(
+    isLoading: Boolean,
+    grupoActivo: GroupProfile?,
+    colorActual: Color, // NUEVO
+    onDesactivarGrupo: () -> Unit,
+    onScanClick: () -> Unit
+) {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         if (isLoading) {
-            CircularProgressIndicator(modifier = Modifier.size(60.dp), color = SafeGreen)
+            CircularProgressIndicator(modifier = Modifier.size(60.dp), color = colorActual)
         } else {
             // Indicador de grupo activo (Modo Colaborativo)
             if (grupoActivo != null) {
@@ -295,18 +381,20 @@ fun MainScreenContent(isLoading: Boolean, grupoActivo: GroupProfile?, onDesactiv
                     selected = true,
                     onClick = onDesactivarGrupo,
                     label = { Text("Grupo: ${grupoActivo.nombre}") },
-                    trailingIcon = { Icon(Icons.Default.Close, null, Modifier.size(16.dp)) }
+                    trailingIcon = { Icon(Icons.Default.Close, null, Modifier.size(16.dp)) },
+                    colors = InputChipDefaults.inputChipColors(selectedContainerColor = colorActual.copy(0.1f))
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
             // Botón central de escaneo ( y la opcion de cambiar de color según el modo)
             Button(
                 onClick = onScanClick, modifier = Modifier.size(220.dp),
-                shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = if (grupoActivo != null) Charcoal else SafeGreen),
+                shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = colorActual),
                 elevation = ButtonDefaults.buttonElevation(12.dp)
             ) { Icon(Icons.Default.QrCodeScanner, null, modifier = Modifier.size(100.dp)) }
             Spacer(modifier = Modifier.height(24.dp))
-            Text(if (grupoActivo != null) "MODO GRUPO ACTIVO" else "MODO PERSONAL", fontWeight = FontWeight.Bold, color = Charcoal)
+            Text(if (grupoActivo != null) "MODO GRUPO ACTIVO" else "MODO PERSONAL", fontWeight = FontWeight.Bold, color = colorActual)
+            Text("Di 'ESCANEAR' para abrir la cámara", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(top = 8.dp))
         }
     }
 }
@@ -319,7 +407,7 @@ fun MainScreenContent(isLoading: Boolean, grupoActivo: GroupProfile?, onDesactiv
 fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () -> Unit) {
     // Lógica binaria para determinar el color de la alerta
     val esApto = mensaje.contains("APTO") && !mensaje.contains("NO APTO")
-    val colorP = if (esApto) SafeGreen else AlertRed
+    val colorP = if (esApto) SafeGreen else WarningRed
 
     Surface(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -341,7 +429,7 @@ fun ResultadoVisualGigante(mensaje: String, producto: Product?, onDismiss: () ->
 
             // Información detallada en caso de peligro
             if (!esApto && !producto?.allergens.isNullOrEmpty()) {
-                Text("Alérgenos detectados: ${producto?.allergens?.joinToString(", ")}", color = AlertRed, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp), textAlign = TextAlign.Center)
+                Text("Alérgenos detectados: ${producto?.allergens?.joinToString(", ")}", color = WarningRed, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp), textAlign = TextAlign.Center)
             }
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = colorP), modifier = Modifier.fillMaxWidth()) {

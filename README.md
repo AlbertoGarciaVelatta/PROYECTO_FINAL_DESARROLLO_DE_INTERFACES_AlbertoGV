@@ -162,7 +162,7 @@ para empezar, hace falta iniciar o abrir nuestra app
 
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/b789a8e7-5a87-49fb-9aa8-4799f2196edb" />
 
-Y ya dentro para poder utilizar sus funciones crearemos una cuenta
+Y ya dentro, para poder utilizar sus funciones crearemos una cuenta
 
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/d1aef304-0234-483a-bd0d-1022b089c47e" />
 
@@ -172,39 +172,37 @@ Y como nuestra app consiste en saber si somos alergicos a determinados productos
 
 Una vez creado el usuario ya podremos usar la app
 
-<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/1ef2975e-483b-4ce7-b2e9-4f9942814ae1" />
+<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/a9b80334-25e5-4ca7-acd8-df991295e14d" />
 
 Como se puede apreciar la interfaz es muy sencilla y simple, ya que lo que buscamos es que el usuario pueda utilizarla de manera rapida.
 en la parte superior a los lados del nombre de la app, se pueden apreciar dos iconos
 
-<img width="432" height="79" alt="image" src="https://github.com/user-attachments/assets/84c563d5-7b6b-427c-84f9-7cb81ef1bb78" />
+<img width="429" height="73" alt="image" src="https://github.com/user-attachments/assets/8c1e393f-066d-4954-91d0-2c27235b7615" />
 
 El de la derecha es para salir de la cuenta, y el de la izquierda es para sacar el menu lateral, que explicare posteriormente.
 Pero el mas importante es el boton central, que es el que da toda la funcionalidad a la app
 
 <img width="150" height="150" alt="image" src="https://github.com/user-attachments/assets/9103a55b-6ed5-4519-aff5-7199dedb3018" />
 
-al pulsarlo nos pedira permiso para usar la camara, y despues podremos escanear los qr de los productos para saber si tenemos alergias
+al pulsarlo nos pedira permiso para usar la camara y audio, y despues podremos escanear los qr de los productos para saber si tenemos alergias
 aqui unas imagenes de este punto
 
-<img width="150" height="150" alt="image" src="https://github.com/user-attachments/assets/373c2cb1-5733-48b5-993c-ec255067cd9d" />
 
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/3084dafc-da62-42b7-a7cd-82927c951b4c" />
 
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/d1d48c47-1258-419f-b500-3361dfc9d3e8" />
 
-y como ultimo punto seria el menu desplegable
-para darle mas sentido al apartado de crear usuario
+y para darle mas sentido al apartado de crear usuario
 y al hecho de que normalmente si vas a hacer la compra, y no vives solo o vas a quedar con tus amigos.
 normalmente deberias estar atento a las alergias de los demas si vas a comprar algo que pueden tomar.
 por eso el menu laterar sirve para formar grupos, que añades gente con una ID que se te asigna al crear un usuario
 
-<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/7cad0ad5-4f25-49f0-ad7f-6f883245b12b" />
+<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/f463783c-7d26-41c6-900f-5dc1b2c84dd9" />
 
-para este punto vamos a crear rapidamente a otro usuario (pero antes copio con antelacion la ID de Antonio)
-He creado ha Luis que es intolerante a la lactosa.
 
-bien, procederemos a crear un grupo que llamaremos Readme
+para este punto vamos a crear rapidamente a otro usuario (pero antes copio con antelacion la ID) para poder hacer el grupo.
+
+bien, procederemos a crear un grupo
 
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/c83650b5-18c7-42d8-b846-1953be3261ec" />
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/87d55c40-54a1-4d9c-9574-eb42b597cc6b" />

@@ -172,7 +172,7 @@ Y como nuestra app consiste en saber si somos alergicos a determinados productos
 
 Una vez creado el usuario ya podremos usar la app
 
-<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/a9b80334-25e5-4ca7-acd8-df991295e14d" />
+<img width="150" height="270" alt="image" src="https://github.com/user-attachments/assets/a9b80334-25e5-4ca7-acd8-df991295e14d" />
 
 Como se puede apreciar la interfaz es muy sencilla y simple, ya que lo que buscamos es que el usuario pueda utilizarla de manera rapida.
 en la parte superior a los lados del nombre de la app, se pueden apreciar dos iconos
@@ -204,31 +204,31 @@ para este punto vamos a crear rapidamente a otro usuario (pero antes copio con a
 
 bien, procederemos a crear un grupo
 
-<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/c83650b5-18c7-42d8-b846-1953be3261ec" />
+<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/c47b4520-59fa-44b9-9a4a-df385d04179d" />
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/87d55c40-54a1-4d9c-9574-eb42b597cc6b" />
-<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/a3a6107e-064b-45f6-8f2d-160b02fe7ac7" />
+<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/e3be2bd6-2b74-430e-a2c8-e247c938a925" />
+
 
 como vemos el grupo ya esta creado, ahora podemos agregar usuarios
 (aqui la funcion de copiar tu ID ayuda bastante a pasarselo a alguien)
 
-<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/eab39843-9ffe-4150-afa2-ec542df3c019" />
-
+<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/7bb516f7-aebc-4fcb-96b8-41bf605dea25" />
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/1dfd16c7-0570-4858-b8e1-0a55cbeec6ad" />
 
 ahora que hemos agregado a un usuario podemos ver que intregantes hay en nuestro grupo
 
-<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/c402f5ac-f559-4f12-99b3-bfafe041f7f8" />
-
+<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/2b6745e4-5a27-40d1-bf86-51f2b294494e" />
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/21596d61-21e7-4778-97e7-4ac55198999d" />
 
 y por ultimo, todo el motivo que este todo esta parafernalia del grupo.
 Poder comprobar en grupo
 aqui las imagenes
 
-<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/ba9aa235-06cf-497b-9a97-def867c436e1" />
+<img width="150" height="270" alt="image" src="https://github.com/user-attachments/assets/a931e406-fd23-4623-9173-b5c6bf550f62" />
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/ae8211eb-a971-42a3-9aba-d817d820c458" />
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/189eacb6-fba1-4b05-8fd0-15fa18e69870" />
 <img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/833ba1f6-8d9e-48ec-8294-1bbc4e10379c" />
+
 (con esta ultima imagen enseño una de las primeras pruebas que hice y corregi,
 ya que esta app coge la lista de ingredientes del producto y lo filtra por palabras clave, 
 al inicio tuve problemas con la leche con y sin lactosa)

@@ -170,7 +170,8 @@ Y como nuestra app consiste en saber si somos alergicos a determinados productos
 
 <img width="150" height="270" alt="image" src="https://github.com/user-attachments/assets/c34cc898-00c1-45dd-84c4-7c7adcfa8e73" />
 
-Una vez creado el usuario ya podremos usar la app
+Una vez creado el usuario ya podremos usar la app.
+La app nos pedira permiso de audio, ya que podemos iniciar el scaner con las siguientes palabras: "escaner", "escanear", "revisar" y "analisis".
 
 <img width="150" height="270" alt="image" src="https://github.com/user-attachments/assets/a9b80334-25e5-4ca7-acd8-df991295e14d" />
 
@@ -184,7 +185,7 @@ Pero el mas importante es el boton central, que es el que da toda la funcionalid
 
 <img width="150" height="150" alt="image" src="https://github.com/user-attachments/assets/9103a55b-6ed5-4519-aff5-7199dedb3018" />
 
-al pulsarlo nos pedira permiso para usar la camara y audio, y despues podremos escanear los qr de los productos para saber si tenemos alergias
+al pulsarlo nos pedira permiso para usar la camara, y despues podremos escanear los qr de los productos para saber si tenemos alergias
 aqui unas imagenes de este punto
 
 
@@ -232,6 +233,30 @@ aqui las imagenes
 (con esta ultima imagen enseño una de las primeras pruebas que hice y corregi,
 ya que esta app coge la lista de ingredientes del producto y lo filtra por palabras clave, 
 al inicio tuve problemas con la leche con y sin lactosa)
+
+y por ultimo, si vemos la parte inferior vemos que hay dos "pestañas", el de inicio, y el de informes, del que voy ha hablar ahora
+
+<img width="452" height="82" alt="image" src="https://github.com/user-attachments/assets/6557aa35-287f-4244-9909-34fe6907c84d" />
+
+en el, veremos lo siguiente
+
+<img width="150" height="270" alt="image" src="https://github.com/user-attachments/assets/150c2c4d-33c4-409c-8da7-4c3977a097ab" />
+
+podemos ver el total de analisis que hemos hecho con este usuario y de alertas, aparte de un porcentaje de productos aptos que hemos analizado
+
+<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/98b9112e-32c1-4888-9c4a-10501bfc6600" />
+
+y la lista de productos que hemos analizado, que nos dice el producto, la fecha, y si es personal o de grupo el analisis (se puede scrollear para ver mas)
+
+<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/0dd8fa1c-9347-46d9-ac7e-b886d1868ea5" />
+
+tambien hay un boton que filtra para que solo apaerzcan los peligrosos (para recordar con los que hay que tener cuidado)
+
+<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/e4f2acfa-6815-47e0-bf67-d81119717504" />
+
+y por ultimo si pulsamos un informe vuelve a salir la pantalla de notificacion
+
+<img width="150" height="210" alt="image" src="https://github.com/user-attachments/assets/1c21ead5-30d9-4541-899e-5bc49236ca1b" />
 
 
 ## 📦 Distribución de aplicaciones (RA7)
